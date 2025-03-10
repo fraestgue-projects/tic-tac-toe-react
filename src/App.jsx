@@ -24,18 +24,55 @@ const Square = ({ children, isSelected, updateBoard, index }) => {
   )
 }
 
+const winnerCombinations = [
+  // horizontal
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  // vertical
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  // diagonal
+  [0, 4, 8],
+  [2, 4, 6],
+];
+
 
 function App() {
 
   const [ board, setBoard ] = useState(Array(9).fill(null));
   const [ turn, setTurn ] = useState(TURNS.X);
+  const [ winner, setWinner ] = useState(null);
+
+  const checkWinner = (boardToCheck) => {
+    for (const combination of winnerCombinations) {
+      const [a, b, c] = combination;
+      if (boardToCheck[a] && boardToCheck[a] === boardToCheck[b] && boardToCheck[a] === boardToCheck[c]) {
+        return boardToCheck[a];
+      }
+    }
+    // si no hay ganador
+    return null;
+  };
 
   const updateBoard = (index) => {
+    // no actualizamos si la posición ya está ocupada
+    if (board[index] || winner) return;
+    // actualizamos el tablero
     const newBoard = [...board];
     newBoard[index] = turn;
     setBoard(newBoard);
+    // cambiamos el turno
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
+
+    // comprobamos si hay un ganador
+    const newWinner = checkWinner(newBoard);
+    if (newWinner) {
+      setWinner(newWinner);
+      alert(`El ganador es ${newWinner}`);
+    }
   };
 
   return (
