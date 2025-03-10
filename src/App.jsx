@@ -1,43 +1,9 @@
-// import './App.css';
 import { useState } from "react";
-
-
-
-const TURNS = {
-  X: 'x',
-  O: 'o',
-}
-
-
-const Square = ({ children, isSelected, updateBoard, index }) => {
-
-  const className = `square ${isSelected ? 'is-selected' : ''}`;
-
-  const handleClick = () => {
-    updateBoard(index);
-  };
-
-  return (
-    <div onClick={handleClick} className={className} /*onClick={() => updateBoard(index)}*/>
-      {children}
-    </div>
-  )
-}
-
-const winnerCombinations = [
-  // horizontal
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  // vertical
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  // diagonal
-  [0, 4, 8],
-  [2, 4, 6],
-];
-
+import confetti from "canvas-confetti";
+import { Square } from "./components/Square";
+import { TURNS } from "./constants";
+import { checkWinner, checkEndGame } from "./logics/board";
+import { WinnerModal } from "./components/WinnerModal";
 
 function App() {
 
@@ -45,16 +11,12 @@ function App() {
   const [ turn, setTurn ] = useState(TURNS.X);
   const [ winner, setWinner ] = useState(null);
 
-  const checkWinner = (boardToCheck) => {
-    for (const combination of winnerCombinations) {
-      const [a, b, c] = combination;
-      if (boardToCheck[a] && boardToCheck[a] === boardToCheck[b] && boardToCheck[a] === boardToCheck[c]) {
-        return boardToCheck[a];
-      }
-    }
-    // si no hay ganador
-    return null;
-  };
+
+  const resetGame = () => {
+    setBoard(Array(9).fill(null));
+    setTurn(TURNS.X);
+    setWinner(null);
+  }
 
   const updateBoard = (index) => {
     // no actualizamos si la posición ya está ocupada
@@ -70,14 +32,17 @@ function App() {
     // comprobamos si hay un ganador
     const newWinner = checkWinner(newBoard);
     if (newWinner) {
+      confetti();
       setWinner(newWinner);
-      alert(`El ganador es ${newWinner}`);
+    } else if (checkEndGame(newBoard)) {
+      setWinner(false);
     }
   };
 
   return (
     <main className="board">
       <h1>Tic Tac Toe</h1>
+      <button onClick={resetGame}>Resetear el juego</button>
       <section className="game">
         {board.map((_, index) => {
           return (
@@ -91,6 +56,7 @@ function App() {
         <Square isSelected={turn === TURNS.X}>{TURNS.X}</Square>
         <Square isSelected={turn === TURNS.O}>{TURNS.O}</Square>
       </section>
+      <WinnerModal winner={winner} resetGame={resetGame}/>
     </main>
   );
 }
